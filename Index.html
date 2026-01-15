@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpectreHax | The Ghost in the Machine</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --card-bg: #141414;
+            --text-main: #e0e0e0;
+            --text-dim: #888;
+            --accent: #00ff9d; /* Electric Green */
+            --accent-glow: rgba(0, 255, 157, 0.2);
+            --font-mono: 'Courier New', Courier, monospace;
+            --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Utility Classes */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-mono);
+            font-weight: normal;
+        }
+
+        .highlight {
+            color: var(--accent);
+        }
+
+        /* Header */
+        header {
+            padding: 2rem 0;
+            border-bottom: 1px solid #222;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            letter-spacing: -1px;
+            font-weight: bold;
+            font-family: var(--font-mono);
+        }
+
+        .logo::before {
+            content: "> ";
+            color: var(--accent);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 8rem 0;
+            text-align: left;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 12px 30px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .cta-button:hover {
+            background: var(--accent-glow);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* About Section */
+        .about {
+            padding: 4rem 0;
+            background: linear-gradient(180deg, var(--bg-color) 0%, #111 100%);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            border-left: 3px solid var(--accent);
+            padding-left: 1rem;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        @media(max-width: 768px) {
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Services Grid */
+        .services {
+            padding: 6rem 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border: 1px solid #222;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        /* Contact / Footer */
+        .contact {
+            padding: 6rem 0;
+            text-align: center;
+            border-top: 1px solid #222;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+            color: #444;
+            font-family: var(--font-mono);
+        }
+
+        /* Glitch Effect Helper */
+        .glitch-text {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <nav>
+                <div class="logo">SpectreHax</div>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <h1>I am <span class="highlight">SpectreHax</span>.</h1>
+            <p>Operating in the space between idea and execution. A ghost in the machine making the intangible tangible.</p>
+            <a href="#contact" class="cta-button">Initialize Project</a>
+        </section>
+    </div>
+
+    <section class="about">
+        <div class="container">
+            <h2 class="section-title">The Philosophy</h2>
+            <div class="about-content">
+                <div>
+                    <p style="margin-bottom: 1.5rem;">
+                        My realm is the full spectrum of digital creation: from dynamic, user-centric websites that engage and convert, to robust, scalable applications that solve real-world problems.
+                    </p>
+                    <p>
+                        I navigate both front-end aesthetics and back-end logic with equal precision, ensuring every project is not just functional, but exceptional. I believe in building with purpose, hacking away complexity to reveal elegant solutions.
+                    </p>
+                </div>
+                <div style="font-family: var(--font-mono); color: var(--text-dim); background: #000; padding: 20px; border-radius: 4px; border: 1px solid #333;">
+                    <p><span style="color: #c678dd">const</span> <span style="color: #e5c07b">mission</span> = {</p>
+                    <p style="padding-left: 20px">focus: <span style="color: #98c379">"Elegant Solutions"</span>,</p>
+                    <p style="padding-left: 20px">complexity: <span style="color: #d19a66">null</span>,</p>
+                    <p style="padding-left: 20px">execution: <span style="color: #98c379">"Tangible"</span></p>
+                    <p>};</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="services">
+        <div class="container">
+            <h2 class="section-title">Capabilities</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Web Sorcery</h3>
+                    <p>Modern, responsive websites built with React, Vue, Next.js, and cutting-edge standards.</p>
+                </div>
+                <div class="card">
+                    <h3>App Alchemy</h3>
+                    <p>Cross-platform and native applications using Flutter, React Native, and seamless UX principles.</p>
+                </div>
+                <div class="card">
+                    <h3>Backend Phantasmagoria</h3>
+                    <p>Solid API design, server logic, and scalable database architecture.</p>
+                </div>
+                <div class="card">
+                    <h3>System Exorcism</h3>
+                    <p>Debugging, optimization, and legacy code modernization to purge inefficiency.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2>Ready to materialize your project?</h2>
+            <p style="margin: 1rem 0 2rem 0; color: var(--text-dim);">Let's connect. The code awaits.</p>
+            <a href="mailto:contact@spectrehax.com" class="cta-button">Execute Connection</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 SpectreHax. All systems operational.</p>
+    </footer>
+
+</body>
+</html>
